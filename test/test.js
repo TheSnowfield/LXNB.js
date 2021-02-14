@@ -3,37 +3,37 @@ const stream = require('stream')
 const util = require('util')
 
 const nextTick = util.promisify(process.nextTick)
-const rcnb = require('../rcnb')
+const lxnb = require('../lxnb')
 
-describe('RCNB', function() {
+describe('LXNB', function() {
   it('should encode', function() {
-    assert.strictEqual(rcnb.encode(new Uint8Array([114, 99, 110, 98])), 'ɌcńƁȓČņÞ')
-    assert.strictEqual(rcnb.encode(new Uint8Array([222, 233, 111, 122, 222])), 'ȵßȑƈȓƇńÞƞƃ')
-    assert.strictEqual(rcnb.encode(new TextEncoder('utf-8').encode('Who NB?')), 'ȐȼŃƅȓčƞÞƦȻƝƃŖć')
+    assert.strictEqual(lxnb.encode(new Uint8Array([114, 99, 110, 98])), 'ɫ̂ńƁꞭҳņÞ')
+    assert.strictEqual(lxnb.encode(new Uint8Array([222, 233, 111, 122, 222])), 'ȵßŁẋɫxńÞƞƃ')
+    assert.strictEqual(lxnb.encode(new TextEncoder('utf-8').encode('Who NB?')), 'ḽχŃƅꞭӿƞÞḽxƝƃľx')
   })
   
   it('should decode', function() {
-    assert.deepStrictEqual(rcnb.decode('ɌcńƁȓČņÞ'), new Uint8Array([114, 99, 110, 98]))
-    assert.deepStrictEqual(rcnb.decode('ȵßȑƈȓƇńÞƞƃ'), new Uint8Array([222, 233, 111, 122, 222]))
-    assert.strictEqual(new TextDecoder("utf-8").decode(rcnb.decode('ȐĉņþƦȻƝƃŔć')), 'RCNB!')
+    assert.deepStrictEqual(lxnb.decode('ɫ̂ńƁꞭҳņÞ'), new Uint8Array([114, 99, 110, 98]))
+    assert.deepStrictEqual(lxnb.decode('ȵßŁẋɫxńÞƞƃ'), new Uint8Array([222, 233, 111, 122, 222]))
+    assert.strictEqual(new TextDecoder("utf-8").decode(lxnb.decode('ḼχŅƃḽxƝƃLᚸ')), 'LXNB!')
   })
 
   it('should error', async function() {
     // length & 1 == true
-    assert.throws(() => rcnb.decode('ɌcńƁȓČņ'))
+    assert.throws(() => lxnb.decode('ĹxńƁⱡḼņ'))
 
-    // not RCNB
-    assert.throws(() => rcnb.decode('cɌńƁ'))
-    assert.throws(() => rcnb.decode('BcńƁ'))
+    // not LXNB
+    assert.throws(() => lxnb.decode('lĹńƁ'))
+    assert.throws(() => lxnb.decode('BxńƁ'))
 
     // overflow
-    assert.throws(() => rcnb.decode('ɍȼȵþ'))
-    assert.throws(() => rcnb.decode('ɍȼ'))
-    assert.throws(() => rcnb.decode('ȵþ'))
+    assert.throws(() => lxnb.decode('ĺӿȵþ'))
+    assert.throws(() => lxnb.decode('ĺӿ'))
+    assert.throws(() => lxnb.decode('ȵþ'))
   })
 })
 
-describe('RCNB stream', function() {
+describe('LXNB stream', function() {
   async function waitAndRead(stream, arr) {
     await nextTick()
     arr.push(stream.read())
@@ -43,21 +43,21 @@ describe('RCNB stream', function() {
     let input = new stream.Readable
     input._read = () => {}
 
-    let output = input.pipe(rcnb.encodeStream())
+    let output = input.pipe(lxnb.encodeStream())
     output.setEncoding('utf-8')
 
     let results = []
     input.push(Buffer.of(222, 233))
     await waitAndRead(output, results)
 
-    assert.strictEqual(results.join(''), 'ȵßȑƈ')
+    assert.strictEqual(results.join(''), 'ȵßŁẋ')
   })
 
   it('should encode from stream (2+3)', async function() {
     let input = new stream.Readable
     input._read = () => {}
 
-    let output = input.pipe(rcnb.encodeStream())
+    let output = input.pipe(lxnb.encodeStream())
     output.setEncoding('utf-8')
 
     let results = []
@@ -67,14 +67,14 @@ describe('RCNB stream', function() {
     input.push(null) // indicates EOF
     await waitAndRead(output, results)
 
-    assert.strictEqual(results.join(''), 'ȵßȑƈȓƇńÞƞƃ')
+    assert.strictEqual(results.join(''), 'ȵßŁẋɫxńÞƞƃ')
   })
 
   it('should encode from stream (3+2)', async function() {
     let input = new stream.Readable
     input._read = () => {}
 
-    let output = input.pipe(rcnb.encodeStream())
+    let output = input.pipe(lxnb.encodeStream())
     output.setEncoding('utf-8')
 
     let results = []
@@ -84,14 +84,14 @@ describe('RCNB stream', function() {
     input.push(null) // indicates EOF
     await waitAndRead(output, results)
 
-    assert.strictEqual(results.join(''), 'ȵßȑƈȓƇńÞƞƃ')
+    assert.strictEqual(results.join(''), 'ȵßŁẋɫxńÞƞƃ')
   })
 
   it('should encode from stream (1+1+1+1+1)', async function() {
     let input = new stream.Readable
     input._read = () => {}
 
-    let output = input.pipe(rcnb.encodeStream())
+    let output = input.pipe(lxnb.encodeStream())
     output.setEncoding('utf-8')
 
     let results = []
@@ -107,14 +107,14 @@ describe('RCNB stream', function() {
     input.push(null) // indicates EOF
     await waitAndRead(output, results)
 
-    assert.strictEqual(results.join(''), 'ȵßȑƈȓƇńÞƞƃ')
+    assert.strictEqual(results.join(''), 'ȵßŁẋɫxńÞƞƃ')
   })
 
   it('should encode from stream 2', async function() {
     let input = new stream.Readable
     input._read = () => {}
 
-    let output = input.pipe(rcnb.encodeStream())
+    let output = input.pipe(lxnb.encodeStream())
     output.setEncoding('utf-8')
 
     let results = []
@@ -124,19 +124,19 @@ describe('RCNB stream', function() {
     input.push(null) // indicates EOF
     await waitAndRead(output, results)
 
-    assert.strictEqual(results.join(''), 'ȐȼŃƅȓčƞÞƦȻƝƃŖć')
+    assert.strictEqual(results.join(''), 'ḽχŃƅꞭӿƞÞḽxƝƃľx')
   })
   
   it('should decode from stream (2+3)', async function() {
     let input = new stream.Readable
     input._read = () => {}
 
-    let output = input.pipe(rcnb.decodeStream())
+    let output = input.pipe(lxnb.decodeStream())
 
     let results = []
-    input.push(Buffer.from('ȵßȑƈ', 'utf-8'))
+    input.push(Buffer.from('ȵßŁẋ', 'utf-8'))
     await waitAndRead(output, results)
-    input.push('ȓƇńÞƞƃ')
+    input.push('ɫxńÞƞƃ')
     input.push(null) // indicates EOF
     await waitAndRead(output, results)
 
@@ -148,12 +148,12 @@ describe('RCNB stream', function() {
     let input = new stream.Readable
     input._read = () => {}
 
-    let output = input.pipe(rcnb.decodeStream())
+    let output = input.pipe(lxnb.decodeStream())
 
     let results = []
-    input.push(Buffer.from('ȵßȑƈȓ', 'utf-8'))
+    input.push(Buffer.from('ȵßŁẋɫ', 'utf-8'))
     await waitAndRead(output, results)
-    input.push('ƇńÞƞƃ')
+    input.push('xńÞƞƃ')
     input.push(null) // indicates EOF
     await waitAndRead(output, results)
 
@@ -165,10 +165,10 @@ describe('RCNB stream', function() {
     let input = new stream.Readable
     input._read = () => {}
 
-    let output = input.pipe(rcnb.decodeStream())
+    let output = input.pipe(lxnb.decodeStream())
 
     let results = []
-    input.push('ȵßȑƈȓƇ')
+    input.push('ȵßŁẋɫx')
     await waitAndRead(output, results)
     input.push('ńÞƞƃ')
     input.push(null) // indicates EOF

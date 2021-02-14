@@ -1,13 +1,13 @@
 /*
-  RCNB.js 
+  Forked from RCNB.js 
   Copyright (c) 2019 Coxxs
   License: https://github.com/rcnbapp/RCNB.js/blob/master/LICENSE
 */
 
-var rcnb = (function() {
+var lxnb = (function() {
   // char
-  var cr = 'rRŔŕŖŗŘřƦȐȑȒȓɌɍ'
-  var cc = 'cCĆćĈĉĊċČčƇƈÇȻȼ'
+  var cr = 'lLĽľĻļḼḽŁꞭɫⱠⱡĹĺ'
+  var cc = 'xXẌẍX̂x̂ẊẋX̌x̌ᚸӽχҳӿ'
   var cn = 'nNŃńŅņŇňƝƞÑǸǹȠȵ'
   var cb = 'bBƀƁƃƄƅßÞþ'
 
@@ -25,7 +25,7 @@ var rcnb = (function() {
   }
 
   function _encodeByte(i) {
-    if (i > 0xFF) throw new Error('rc/nb overflow')
+    if (i > 0xFF) throw new Error('lx/nb overflow')
     if (i > 0x7F) {
       i = i & 0x7F
       return cn.charAt(_div(i, sb)) + cb.charAt(i % sb)
@@ -34,7 +34,7 @@ var rcnb = (function() {
   }
 
   function _encodeShort(i) {
-    if (i > 0xFFFF) throw new Error('rcnb overflow')
+    if (i > 0xFFFF) throw new Error('lxnb overflow')
     var reverse = false
     if (i > 0x7FFF) {
       reverse = true
@@ -60,9 +60,9 @@ var rcnb = (function() {
       idx = [cn.indexOf(c.charAt(0)), cb.indexOf(c.charAt(1))]
       nb = true
     }
-    if (idx[0] < 0 || idx[1] < 0) throw new Error('not rc/nb')
+    if (idx[0] < 0 || idx[1] < 0) throw new Error('not lx/nb')
     var result = nb ? idx[0] * sb + idx[1] : idx[0] * sc + idx[1]
-    if (result > 0x7F) throw new Error('rc/nb overflow')
+    if (result > 0x7F) throw new Error('lx/nb overflow')
     return nb ? result | 0x80 : result
   }
 
@@ -74,13 +74,13 @@ var rcnb = (function() {
     } else {
       idx = [cr.indexOf(c.charAt(2)), cc.indexOf(c.charAt(3)), cn.indexOf(c.charAt(0)), cb.indexOf(c.charAt(1))]
     }
-    if (idx[0] < 0 || idx[1] < 0 || idx[2] < 0 || idx[3] < 0) throw new Error('not rcnb')
+    if (idx[0] < 0 || idx[1] < 0 || idx[2] < 0 || idx[3] < 0) throw new Error('not lxnb')
     var result = idx[0] * scnb + idx[1] * snb + idx[2] * sb + idx[3]
-    if (result > 0x7FFF) throw new Error('rcnb overflow')
+    if (result > 0x7FFF) throw new Error('lxnb overflow')
     return reverse ? result | 0x8000 : result
   }
 
-  function streamFactory(_rcnb) {
+  function streamFactory(_lxnb) {
     if (!streamFactory._ret) {
       var Transform = require('stream').Transform
 
@@ -111,13 +111,13 @@ var rcnb = (function() {
           buf = buf.slice(0, buf.length - 1)
         }
         if (buf) {
-          this.push(_rcnb.encode(buf))
+          this.push(_lxnb.encode(buf))
         }
         callback()
       }
       EncodeStream.prototype._flush = function(callback) {
         if (this._remain) {
-          this.push(_rcnb.encode(this._remain))
+          this.push(_lxnb.encode(this._remain))
           this._remain = null
         }
         callback()
@@ -150,7 +150,7 @@ var rcnb = (function() {
           str = str.slice(0, -(str.length & 3))
         }
         if (str) {
-          this.push(_rcnb.decode(str))
+          this.push(_lxnb.decode(str))
         }
         callback()
       }
@@ -160,7 +160,7 @@ var rcnb = (function() {
             callback(new Error('invalid length'))
             return
           }
-          this.push(_rcnb.decode(this._remain))
+          this.push(_lxnb.decode(this._remain))
           this._remain = null
         }
         callback()
@@ -174,7 +174,7 @@ var rcnb = (function() {
     return streamFactory._ret
   }
 
-  var rcnb = {
+  var lxnb = {
     encode: function(arr) {
       var str = ''
       // encode every 2 bytes
@@ -188,7 +188,7 @@ var rcnb = (function() {
     decode: function(str) {
       if (str.length & 1) throw new Error('invalid length')
       var arr = []
-      // decode every 2 bytes (1 rcnb = 2 bytes)
+      // decode every 2 bytes (1 lxnb = 2 bytes)
       for (var i = 0; i < (str.length >> 2); i++) {
         var short = _decodeShort(str.substr(i * 4, 4))
         arr.push(short >> 8)
@@ -199,18 +199,18 @@ var rcnb = (function() {
       return Uint8Array.from(arr)
     },
     encodeStream: function(options) {
-      var EncodeStream = streamFactory(rcnb).EncodeStream
+      var EncodeStream = streamFactory(lxnb).EncodeStream
       return new EncodeStream(options)
     },
     decodeStream: function(options) {
-      var DecodeStream = streamFactory(rcnb).DecodeStream
+      var DecodeStream = streamFactory(lxnb).DecodeStream
       return new DecodeStream(options)
     }
   }
 
-  return rcnb
+  return lxnb
 })()
 
 if (typeof module !== 'undefined' && module != null) {
-  module.exports = rcnb
+  module.exports = lxnb
 }
